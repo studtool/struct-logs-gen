@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,6 +37,7 @@ func main() {
 	src, dest := string(data), ""
 
 	hTmp := fasttemplate.New(headerTemplate, "{{", "}}")
+	iTmp := fasttemplate.New(initTemplate, "{{", "}}")
 	sTmp := fasttemplate.New(structLoggerTemplate, "{{", "}}")
 
 	hasPkg := false
@@ -50,9 +52,13 @@ func main() {
 			}
 
 			hasPkg = true
-			pkgName := strings.TrimLeft(line, "package ") //TODO check
+			pkgName := strings.TrimLeft(line, "package ")
 			dest += hTmp.ExecuteString(map[string]interface{}{
 				"package": pkgName,
+			})
+
+			dest += iTmp.ExecuteString(map[string]interface{}{
+				"rndName": fmt.Sprintf("theValueOfVar%d", rand.Uint64()),
 			})
 
 			continue
@@ -101,8 +107,23 @@ const (
 		package {{package}}
 
 		import (
+			"fmt"
+			"reflect"
+
 			"github.com/studtool/common/logs"
 		)
+	`
+
+	initTemplate = `
+
+		var (
+			{{rndName}} = ""
+		)
+		
+		func init() {
+			p := reflect.TypeOf({{rndName}}).PkgPath()
+			fmt.Println(p)
+		}
 	`
 
 	structLoggerTemplate = `
