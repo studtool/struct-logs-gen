@@ -136,8 +136,8 @@ const (
 			p = p[i1:i2]
 
 			pkg, err := importer.Default().Import(prefix + {{componentName}} + "/config")
-    		if err != nil {
-        		panic(err)
+			if err != nil {
+				panic(err)
 			}
 
 			scope := pkg.Scope()
