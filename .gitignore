@@ -3,4 +3,4 @@
 .vscode
 
 ### dev ###
-/bin/
+test_*.go

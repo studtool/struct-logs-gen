@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -63,7 +64,7 @@ func main() {
 			}
 
 			i1 := len("type ")
-			i2 := strings.Index(line[i1:], " ")
+			i2 := strings.Index(line[i1:], " ") + i1
 			structName := line[i1:i2]
 
 			dest += "\n" + sTmp.ExecuteString(map[string]interface{}{
@@ -83,6 +84,12 @@ func main() {
 	}
 
 	err = ioutil.WriteFile(fnOut, []byte(dest), 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	cmd := exec.Command("go", "fmt", fnOut)
+	err = cmd.Run()
 	if err != nil {
 		panic(err)
 	}
