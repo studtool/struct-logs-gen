@@ -138,18 +138,18 @@ const (
 			pkg, err := importer.Default().Import(prefix + {{componentName}} + "/config")
     		if err != nil {
         		panic(err)
-   			}
+			}
 
-    		scope := pkg.Scope()
-    		for _, name := range scope.Names() {
+			scope := pkg.Scope()
+			for _, name := range scope.Names() {
 				// config.Component should exist
-        		if name == "Component" {
-            		obj := scope.Lookup(name)
-            		if tn, ok := obj.Type().(*types.Named); !ok {
+				if name == "Component" {
+					obj := scope.Lookup(name)
+					if tn, ok := obj.Type().(*types.Named); !ok {
 						panic(!ok) //TODO
-            		}
-        		}
-    		}
+					}
+				}
+			}
 		}
 	`
 
