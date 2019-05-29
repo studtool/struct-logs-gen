@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"strings"
+
 	"io/ioutil"
 	"math/rand"
-	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/valyala/fasttemplate"
 )
@@ -58,7 +59,7 @@ func main() {
 			})
 
 			dest += iTmp.ExecuteString(map[string]interface{}{
-				"rndName": fmt.Sprintf("theValueOfVar%d", rand.Uint64()),
+				"componentName": fmt.Sprintf("componentName%d", rand.Uint64()),
 			})
 
 			continue
@@ -107,22 +108,48 @@ const (
 		package {{package}}
 
 		import (
-			"fmt"
 			"reflect"
+			"strings"
+
+			"go/importer"
+			"go/types"
 
 			"github.com/studtool/common/logs"
 		)
 	`
 
 	initTemplate = `
-
 		var (
-			{{rndName}} = ""
+			{{componentName}} = ""
 		)
 		
 		func init() {
-			p := reflect.TypeOf({{rndName}}).PkgPath()
-			fmt.Println(p)
+			const prefix = "github.com/studtool/"
+
+			p := reflect.TypeOf({{componentName}}).PkgPath()
+			if !strings.Contains(p, prefix) {
+				panic("not a studtool service")
+			}
+
+			i1 := strings.Index(p, prefix) + len(prefix)
+			i2 := strings.Index(p[i1:], "/") + i1
+			p = p[i1:i2]
+
+			pkg, err := importer.Default().Import(prefix + {{componentName}} + "/config")
+    		if err != nil {
+        		panic(err)
+   			}
+
+    		scope := pkg.Scope()
+    		for _, name := range scope.Names() {
+				// config.Component should exist
+        		if name == "Component" {
+            		obj := scope.Lookup(name)
+            		if tn, ok := obj.Type().(*types.Named); !ok {
+						panic(!ok) //TODO
+            		}
+        		}
+    		}
 		}
 	`
 
